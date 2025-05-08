@@ -2,28 +2,28 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mapa de rutas seguras</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rutas seguras</title>
 
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-  />
-  <!-- Tu propio estilo -->
+  <!-- ✅ LEAFLET CSS desde CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha512-sA+e2W+W1qN9hhYiRm+UoY+NnRtG1K4v3+RRRNaq6GJgiCznDHvS3oXv6+3iOw1P+2wHgV7PR5jPwVx5rmg1sQ=="
+        crossorigin="" />
+
+  <!-- ✅ TU CSS -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <h3>Selecciona nodos en el mapa</h3>
-  <button onclick="calcularRuta()">Calcular ruta</button>
   <div id="map"></div>
+  <button onclick="calcularRuta()">Calcular ruta</button>
 
-  <!-- Leaflet JS -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js">
-  </script>
+  <!-- ✅ LEAFLET JS desde CDN -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha512-pw5VmFfDX1iLrUHVbrpKdTCDtpP0ZkSFRLL1Mv6kdLa5O3bY7QFS65KrfXQHYRW6VUNb+KugFNSKd1cP/CZ8gA=="
+          crossorigin=""></script>
 
-  <!-- Tu script -->
+  <!-- ✅ TU SCRIPT -->
   <script src="script.js"></script>
 </body>
 </html>

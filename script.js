@@ -1,6 +1,14 @@
 let mapa = L.map('map').setView([39.5, -0.4], 12);  // ajusta coordenadas según tus nodos
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
 
+const map = L.map('map').setView([39.5, -0.4], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors',
+  maxZoom: 19,
+}).addTo(map);
+
+
 let nodos = {};
 let aristas = [];
 let seleccion = [];

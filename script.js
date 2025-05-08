@@ -1,104 +1,107 @@
-let map = L.map("map").setView([39.5, -0.4], 10); // Centrado en Valencia
-
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 19,
-}).addTo(map);
+let mapa = L.map('map').setView([39.5, -0.4], 12);  // ajusta coordenadas según tus nodos
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
 
 let nodos = {};
 let aristas = [];
-let origen = null;
-let destino = null;
+let seleccion = [];
+let marcadores = [];
+let rutaLayer = null;
 
-// Cargar nodos desde múltiples archivos
-const nodosArchivos = ["nodos_1.json", "nodos_2.json", "nodos_3.json", "nodos_4.json"];
-const aristasArchivos = [
-  "aristas_1.json", "aristas_2.json", "aristas_3.json", "aristas_4.json", "aristas_5.json",
-  "aristas_6.json", "aristas_7.json", "aristas_8.json", "aristas_9.json", "aristas_10.json",
-  "aristas_11.json", "aristas_12.json", "aristas_13.json", "aristas_14.json"
-];
-
-Promise.all(nodosArchivos.map(f => fetch(f).then(r => r.json())))
-  .then(data => {
-    data.flat().forEach(n => {
+// Cargar múltiples archivos nodos y aristas
+const cargarJSON = async () => {
+  for (let i = 1; i <= 4; i++) {
+    const r = await fetch(`nodos_${i}.json`);
+    const datos = await r.json();
+    datos.forEach(n => {
       nodos[n.id] = n;
-      const marker = L.circleMarker([n.y, n.x], { radius: 4 }).addTo(map);
-      marker.on("click", () => seleccionarNodo(n.id, marker));
     });
-    return Promise.all(aristasArchivos.map(f => fetch(f).then(r => r.json())));
-  })
-  .then(data => {
-    aristas = data.flat();
-    console.log(`Cargados ${Object.keys(nodos).length} nodos y ${aristas.length} aristas`);
+  }
+  for (let i = 1; i <= 14; i++) {
+    const r = await fetch(`aristas_${i}.json`);
+    const datos = await r.json();
+    aristas.push(...datos);
+  }
+  mostrarNodos();
+};
+
+const mostrarNodos = () => {
+  Object.values(nodos).forEach(n => {
+    if (!n.x || !n.y) return;
+    const marker = L.circleMarker([n.y, n.x], { radius: 3 }).addTo(mapa);
+    marker.on('click', () => seleccionarNodo(n.id));
   });
+};
 
-function seleccionarNodo(id, marker) {
-  if (!origen) {
-    origen = id;
-    marker.setStyle({ color: "green" });
-  } else if (!destino) {
-    destino = id;
-    marker.setStyle({ color: "red" });
-  } else {
-    alert("Ya se han seleccionado dos nodos");
+const seleccionarNodo = (id) => {
+  if (seleccion.length >= 2) {
+    seleccion = [];
+    marcadores.forEach(m => mapa.removeLayer(m));
+    marcadores = [];
+    if (rutaLayer) mapa.removeLayer(rutaLayer);
   }
-}
+  seleccion.push(id);
+  const nodo = nodos[id];
+  const m = L.marker([nodo.y, nodo.x]).addTo(mapa);
+  marcadores.push(m);
+};
 
-function calcularRuta() {
-  if (!origen || !destino) {
-    alert("Selecciona origen y destino");
+const calcularRuta = () => {
+  if (seleccion.length < 2) {
+    alert("Selecciona origen y destino.");
     return;
   }
 
-  // Construir grafo como diccionario
-  let G = {};
-  for (let arista of aristas) {
-    if (!G[arista.origen]) G[arista.origen] = [];
-    G[arista.origen].push({ destino: arista.destino, peso: arista.costo_total });
-  }
+  const grafo = construirGrafo();
+  const ruta = dijkstra(grafo, seleccion[0], seleccion[1]);
 
-  let ruta = dijkstra(G, origen, destino);
   if (!ruta) {
-    alert("No hay ruta disponible");
+    alert("No hay ruta.");
     return;
   }
 
-  let puntos = ruta.map(n => [nodos[n].y, nodos[n].x]);
-  L.polyline(puntos, { color: "blue", weight: 4 }).addTo(map);
-}
+  const puntos = ruta.map(id => [nodos[id].y, nodos[id].x]);
+  if (rutaLayer) mapa.removeLayer(rutaLayer);
+  rutaLayer = L.polyline(puntos, { color: 'blue', weight: 4 }).addTo(mapa);
+};
 
-// Algoritmo de Dijkstra sencillo
-function dijkstra(grafo, inicio, fin) {
-  let dist = {};
-  let prev = {};
-  let Q = new Set(Object.keys(grafo));
+const construirGrafo = () => {
+  const grafo = {};
+  aristas.forEach(a => {
+    if (!(a.origen in grafo)) grafo[a.origen] = [];
+    grafo[a.origen].push({ id: a.destino, peso: a.costo_total ?? 1 });
+  });
+  return grafo;
+};
 
-  for (let nodo of Q) {
-    dist[nodo] = Infinity;
-    prev[nodo] = null;
-  }
+const dijkstra = (grafo, inicio, fin) => {
+  const dist = {};
+  const prev = {};
+  const Q = new Set(Object.keys(grafo));
+  Q.forEach(n => dist[n] = Infinity);
   dist[inicio] = 0;
 
-  while (Q.size > 0) {
-    let u = [...Q].reduce((a, b) => (dist[a] < dist[b] ? a : b));
+  while (Q.size) {
+    const u = [...Q].reduce((a, b) => dist[a] < dist[b] ? a : b);
     Q.delete(u);
-
     if (u === fin) break;
     if (!grafo[u]) continue;
 
-    for (let v of grafo[u]) {
-      let alt = dist[u] + v.peso;
-      if (alt < dist[v.destino]) {
-        dist[v.destino] = alt;
-        prev[v.destino] = u;
+    grafo[u].forEach(({ id: v, peso }) => {
+      const alt = dist[u] + peso;
+      if (alt < dist[v]) {
+        dist[v] = alt;
+        prev[v] = u;
       }
-    }
+    });
   }
 
-  let S = [];
+  const ruta = [];
   let u = fin;
   while (u) {
-    S.unshift(u);
+    ruta.unshift(u);
     u = prev[u];
   }
-  return S[0] === inicio ? S : null;
-}
+  return ruta.length > 1 ? ruta : null;
+};
+
+cargarJSON();

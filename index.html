@@ -1,16 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Rutas seguras</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-  <link rel="stylesheet" href="/static/style.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapa de rutas seguras</title>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+  />
+  <!-- Tu propio estilo -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h2>Selecciona nodos en el mapa</h2>
+  <h3>Selecciona nodos en el mapa</h3>
+  <button onclick="calcularRuta()">Calcular ruta</button>
   <div id="map"></div>
-  <p><button onclick="calcularRuta()">Calcular ruta</button></p>
-  <p id="info"></p>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="/static/script.js"></script>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js">
+  </script>
+
+  <!-- Tu script -->
+  <script src="script.js"></script>
 </body>
 </html>
